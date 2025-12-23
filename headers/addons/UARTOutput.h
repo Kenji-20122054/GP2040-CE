@@ -5,9 +5,10 @@
 
 class UARTOutputAddon : public GPAddon {
 public:
-    virtual bool available(); // アドオンが有効かどうか
-    virtual void setup();     // 初期化処理（UART設定など）
-    virtual void process();   // 毎フレーム実行される処理
+    virtual bool available();
+    virtual void setup();
+    virtual void preprocess(); // ★この1行を追加してください
+    virtual void process();
     virtual std::string name() { return "UART Output"; }
 };
 
