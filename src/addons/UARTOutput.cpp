@@ -11,7 +11,7 @@
 #define UART_RX_PIN 1  // GP1
 
 bool UARTOutputAddon::available() {
-    // ここで設定の有効/無効を判定できますが、今回は強制的に有効にします
+    // 常に有効にする
     return true;
 }
 
@@ -24,18 +24,20 @@ void UARTOutputAddon::setup() {
     gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
 }
 
+// ★ここが不足していた関数です
+void UARTOutputAddon::preprocess() {
+    // 前処理は不要なので何もしない
+}
+
 void UARTOutputAddon::process() {
     // 現在のゲームパッドの状態を取得
     Gamepad * gamepad = Storage::getInstance().GetGamepad();
     
     // ボタンの状態（ビットマスク）を取得
-    // buttonsは通常 uint16_t で、各ビットが各ボタンに対応しています
     uint16_t buttonState = gamepad->state.buttons;
     uint8_t dpadState = gamepad->state.dpad;
 
-    // --- 送信処理の例 ---
-    
-    // バイナリで送る場合（高速・シンプル）
+    // バイナリで送る
     // ヘッダ(0xFF) + ボタン上位バイト + ボタン下位バイト + 方向キー
     if (uart_is_writable(UART_ID)) {
         uart_putc(UART_ID, 0xFF); // 同期用ヘッダ
@@ -43,12 +45,4 @@ void UARTOutputAddon::process() {
         uart_putc(UART_ID, buttonState & 0xFF);
         uart_putc(UART_ID, dpadState);
     }
-	void UARTOutputAddon::preprocess() {
-    // 前処理は特に必要ないので空にしておきます
-}
-
-    // もしテキスト（CSVなど）で送りたい場合は以下のようにします
-    // char buffer[32];
-    // sprintf(buffer, "%d,%d\n", buttonState, dpadState);
-    // uart_puts(UART_ID, buffer);
 }
