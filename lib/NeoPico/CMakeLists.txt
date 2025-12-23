@@ -1,3 +1,5 @@
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/src/generated")
+
 add_library(NeoPico
 src/NeoPico.cpp
 )
