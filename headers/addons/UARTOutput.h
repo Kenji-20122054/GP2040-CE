@@ -5,13 +5,13 @@
 
 class UARTOutputAddon : public GPAddon {
 public:
-    virtual bool available();
-    virtual void setup();
-    virtual void preprocess();
-    virtual void process();
-    virtual void postprocess(bool); // ★追加
-    virtual void reinit();          // ★追加
-    virtual std::string name() { return "UART Output"; }
+    virtual bool available() override;
+    virtual void setup() override;
+    virtual void preprocess() override;
+    virtual void process() override;
+    virtual void postprocess(bool) override; // ここが重要
+    virtual void reinit() override;
+    virtual std::string name() override { return "UART Output"; }
 };
 
 #endif
