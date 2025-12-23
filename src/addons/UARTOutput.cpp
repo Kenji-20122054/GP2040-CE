@@ -19,8 +19,8 @@ void UARTOutputAddon::setup() {
     gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
 }
 
-// ★これだけが必要でした
 void UARTOutputAddon::preprocess() {
+    // 処理なし
 }
 
 void UARTOutputAddon::process() {
