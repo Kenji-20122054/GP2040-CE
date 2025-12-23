@@ -76,7 +76,6 @@ jobs:
     needs: call-node-workflow
     runs-on: ubuntu-22.04
     strategy:
-      # 1つの基板でエラーが出ても、他の基板のビルドを止めない設定
       fail-fast: false
       matrix:
         GP2040_BOARDCONFIG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.board_config != '' && fromJSON(format('["{0}"]', github.event.inputs.board_config)) || fromJSON('["ARCController", "ASiLVLABC", "ASiLVLWASD", "Blank", "Pico", "PicoW", "Pico2", "BentoBox", "FlatboxRev4", "FlatboxRev5", "FlatboxRev5RGB", "FlatboxRev5USBPassthrough", "FlatboxRev5Southpaw", "FlatboxRev8", "Granola", "GranolaBeacon", "KB2040", "KeyboardConverter", "Haute42COSMOX", "Haute42COSMOXMLite", "Haute42COSMOXMUltra", "Haute42COSMOXXAnalog", "Liatris", "MavercadeRev1", "MavercadeRev2", "MavercadeRev3", "MiSTercadeV2", "OpenCore0", "OpenCore0MIXUP", "OpenCore0WASD", "OSUMGP-RP2040", "PicoAnn", "PicoFightingBoard", "PXPGamepad", "ReflexCtrlGenesis6", "ReflexCtrlNES", "ReflexCtrlSaturn", "ReflexCtrlSNES", "ReflexCtrlVB", "ReflexEncodeV1.2", "ReflexEncodeV2.0", "RP2040AdvancedBreakoutBoard", "RP2040AdvancedBreakoutBoardUSBPassthrough", "RP2040MiniBreakoutBoard", "RP2040MiniBreakoutBoardUSBPassthrough", "SeeedXIAORP2040", "SparkFunProMicro", "SparkFunProMicroRP2350", "WaveshareZero", "Stress", "SGFDevices", "ZeroRhythm"]') }}
@@ -84,8 +83,8 @@ jobs:
       - name: Setup cmake
         uses: jwlawson/actions-setup-cmake@v2
         with:
-          # 新しいSDK (2.x) に対応するためCMakeのバージョンを上げる
-          cmake-version: "3.28.x"
+          # 古いSDKに合わせてCMakeのバージョンも少し戻します（これが一番安定します）
+          cmake-version: "3.17.x"
       
       - name: Verify cmake
         run: cmake --version
@@ -102,11 +101,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
 
-      # Pico SDKを手動ダウンロード（バージョン指定を外して最新の2.x系を取得させる）
+      # 【重要】Pico SDKのバージョンを「1.5.1」に固定してダウンロード
+      # これにより、新しいMbed TLSが含まれない古いSDKが使われ、ビルドエラーが解消します
       - name: Clone Pico SDK
         uses: actions/checkout@v4
         with:
           repository: raspberrypi/pico-sdk
+          ref: 1.5.1
           path: pico-sdk
           submodules: true
 
@@ -122,6 +123,7 @@ jobs:
 
       - name: Pico Build Configure CMake
         shell: bash
+        # SDKパスを明示的に指定してcmakeを実行
         run: PICO_SDK_PATH=${{github.workspace}}/pico-sdk GP2040_BOARDCONFIG=${{ matrix.GP2040_BOARDCONFIG }} SKIP_WEBBUILD=TRUE cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: Pico Build
