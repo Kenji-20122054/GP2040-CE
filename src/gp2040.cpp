@@ -605,12 +605,10 @@ void GP2040::handleSystemReboot(GPEvent* e) {
 #include "hardware/pio.h"
 
 extern "C" {
-    // この関数がリンク時に見つからないエラー（undefined reference）を修正
+    // この関数がリンク時に見つからないエラー（undefined reference）を修正するためのダミー実装
     void __attribute__((weak)) pio_sm_set_jmp_pin(PIO pio, uint sm, uint pin) {
-        // SDKの内部実装と同じ処理を行います
-        check_pio_param(pio);
-        check_sm_param(sm);
-        check_pin_param(pin);
+        // エラーの原因になっていた check_xxx 系関数を削除しました
+        // 実際の処理（ビット演算）のみを行います
         pio->sm[sm].execctrl = (pio->sm[sm].execctrl & ~PIO_SM0_EXECCTRL_JMP_PIN_BITS) |
                                (pin << PIO_SM0_EXECCTRL_JMP_PIN_LSB);
     }
