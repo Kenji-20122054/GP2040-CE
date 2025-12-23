@@ -7,10 +7,8 @@ class UARTOutputAddon : public GPAddon {
 public:
     virtual bool available() override;
     virtual void setup() override;
-    virtual void preprocess() override;
+    virtual void preprocess() override; // ★これだけが必要でした
     virtual void process() override;
-    virtual void postprocess(bool) override; // ここが重要
-    virtual void reinit() override;
     virtual std::string name() override { return "UART Output"; }
 };
 
