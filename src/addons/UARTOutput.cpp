@@ -43,6 +43,9 @@ void UARTOutputAddon::process() {
         uart_putc(UART_ID, buttonState & 0xFF);
         uart_putc(UART_ID, dpadState);
     }
+	void UARTOutputAddon::preprocess() {
+    // 前処理は特に必要ないので空にしておきます
+}
 
     // もしテキスト（CSVなど）で送りたい場合は以下のようにします
     // char buffer[32];
