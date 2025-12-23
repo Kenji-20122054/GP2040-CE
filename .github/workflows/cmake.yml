@@ -76,7 +76,7 @@ jobs:
     needs: call-node-workflow
     runs-on: ubuntu-22.04
     strategy:
-      # 1つが失敗しても他を止めない設定（全ビルドの場合は有効にしておくと良いです）
+      # 1つの基板でエラーが出ても、他の基板のビルドを止めない設定
       fail-fast: false
       matrix:
         GP2040_BOARDCONFIG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.board_config != '' && fromJSON(format('["{0}"]', github.event.inputs.board_config)) || fromJSON('["ARCController", "ASiLVLABC", "ASiLVLWASD", "Blank", "Pico", "PicoW", "Pico2", "BentoBox", "FlatboxRev4", "FlatboxRev5", "FlatboxRev5RGB", "FlatboxRev5USBPassthrough", "FlatboxRev5Southpaw", "FlatboxRev8", "Granola", "GranolaBeacon", "KB2040", "KeyboardConverter", "Haute42COSMOX", "Haute42COSMOXMLite", "Haute42COSMOXMUltra", "Haute42COSMOXXAnalog", "Liatris", "MavercadeRev1", "MavercadeRev2", "MavercadeRev3", "MiSTercadeV2", "OpenCore0", "OpenCore0MIXUP", "OpenCore0WASD", "OSUMGP-RP2040", "PicoAnn", "PicoFightingBoard", "PXPGamepad", "ReflexCtrlGenesis6", "ReflexCtrlNES", "ReflexCtrlSaturn", "ReflexCtrlSNES", "ReflexCtrlVB", "ReflexEncodeV1.2", "ReflexEncodeV2.0", "RP2040AdvancedBreakoutBoard", "RP2040AdvancedBreakoutBoardUSBPassthrough", "RP2040MiniBreakoutBoard", "RP2040MiniBreakoutBoardUSBPassthrough", "SeeedXIAORP2040", "SparkFunProMicro", "SparkFunProMicroRP2350", "WaveshareZero", "Stress", "SGFDevices", "ZeroRhythm"]') }}
@@ -84,33 +84,31 @@ jobs:
       - name: Setup cmake
         uses: jwlawson/actions-setup-cmake@v2
         with:
-          cmake-version: "3.17.x"
+          # 新しいSDK (2.x) に対応するためCMakeのバージョンを上げる
+          cmake-version: "3.28.x"
+      
       - name: Verify cmake
         run: cmake --version
 
-      #Global Setup
       - name: Checkout GP2040-CE
         uses: actions/checkout@v4.1.1
         with:
           fetch-depth: 0
           fetch-tags: true
 
-      # --- 修正箇所：ここから ---
-      # コンパイラをaptでインストール（MD5エラー回避）
+      # コンパイラのMD5エラー回避のため、aptで安定版をインストール
       - name: Install Arm GNU Toolchain (apt)
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
 
-      # Pico SDK バージョン1.5.1 を指定してダウンロード（ビルドエラー回避）
+      # Pico SDKを手動ダウンロード（バージョン指定を外して最新の2.x系を取得させる）
       - name: Clone Pico SDK
         uses: actions/checkout@v4
         with:
           repository: raspberrypi/pico-sdk
-          ref: 1.5.1
           path: pico-sdk
           submodules: true
-      # --- 修正箇所：ここまで ---
 
       - name: Download a Build Artifact
         uses: actions/download-artifact@v4.1.2
@@ -121,7 +119,6 @@ jobs:
       - name: Get core count
         id: core_count
         run: cat /proc/cpuinfo  | grep processor | wc -l
-        #End Global Setup
 
       - name: Pico Build Configure CMake
         shell: bash
